@@ -1,0 +1,47 @@
+# Cursor Rule: Chuyển Màn Hình Từ Sample Sang App Chính
+
+## 1. Tạo thư mục riêng cho màn hình
+
+- Đặt tại: `src/screens/<ScreenName>/`
+
+## 2. Tách các phần của màn hình
+
+- `ScreenName.tsx`: Component chính (UI + logic).
+- `styles.ts`: Chứa toàn bộ style của màn hình.
+- `index.ts`: Export mặc định.
+
+## 3. Chuyển đổi code từ sample
+
+- Copy toàn bộ UI, style, logic từ file sample (JS) sang file mới (TSX).
+- Đảm bảo import đúng các thư viện React Native, React Navigation, v.v.
+
+## 4. Chuẩn hóa TypeScript
+
+- Thêm type cho props, state, navigation nếu cần.
+- Nếu màn hình dùng navigation, sử dụng hook `useNavigation` với type an toàn.
+- Nếu truyền dữ liệu qua navigation, định nghĩa type cho param trong `src/types/navigation.ts`.
+
+## 5. Tách data mẫu (nếu có)
+
+- Nếu màn hình dùng data mẫu (mock data), tách ra file JSON trong `src/data/` và import vào ViewModel.
+
+## 6. Tạo ViewModel cho màn hình
+
+- Tạo file trong `src/viewmodels/` (ví dụ: `ScreenNameViewModel.ts`).
+- Đưa logic xử lý, lấy data, state vào ViewModel.
+- Component chỉ gọi hook ViewModel để lấy data/state.
+
+## 7. Kiểm tra và đồng bộ Model
+
+- Đảm bảo data, ViewModel, và các param navigation đều dùng đúng model TypeScript (interface).
+
+## 8. Kiểm tra lại UI và navigation
+
+- Đảm bảo UI giống sample, navigation hoạt động đúng, không lỗi type.
+
+---
+
+**Ghi chú:**
+
+- Áp dụng quy tắc này cho mọi màn hình khi chuyển từ sample sang app chính.
+- Ưu tiên tách biệt UI, logic, style, data, model để dễ bảo trì và mở rộng.

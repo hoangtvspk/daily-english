@@ -1,19 +1,16 @@
 import { useState, useEffect } from "react";
-import { Quiz } from "../models/QuizModel";
+import { Answer, QuizDetailState } from "../types/common";
 import {
   QuizDetailModel,
-  QuizDetailState,
-  Answer,
 } from "../models/QuizDetailModel";
-import { QuizService } from "../services/QuizService";
+
+import * as QuizService from "../services/QuizService";
 
 export const useQuizDetailViewModel = (quizId: string) => {
   const [quizDetailModel, setQuizDetailModel] =
     useState<QuizDetailModel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const quizService = new QuizService();
 
   useEffect(() => {
     loadQuizDetail();
@@ -23,7 +20,7 @@ export const useQuizDetailViewModel = (quizId: string) => {
   const loadQuizDetail = async () => {
     try {
       setIsLoading(true);
-      const quiz = await quizService.getQuizById(quizId);
+      const quiz = await QuizService.getQuizById(quizId);
 
       if (!quiz) {
         setError("Quiz not found");

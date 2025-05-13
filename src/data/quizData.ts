@@ -1,6 +1,4 @@
-import { Quiz } from "../models/QuizModel";
-import { questionsData } from "./questionData";
-import { quizQuestionData } from "./quizQuestionData";
+
 
 // Quiz data type definition
 export interface QuizData {

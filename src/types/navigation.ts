@@ -1,11 +1,10 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
-import { Quiz, Word } from "./common";
 
 export type RootStackParamList = {
   Home: undefined;
   Vocabulary: undefined;
-  WordDetail: { word: Word };
+  WordDetail: { wordId: string };
   Dictionary: undefined;
   Quiz: undefined;
   QuizDetail: { quizId: string };

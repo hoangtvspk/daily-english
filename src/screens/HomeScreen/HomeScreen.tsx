@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useHomeViewModel } from "../../viewmodels/HomeViewModel";
 import { useNavigation } from "@react-navigation/native";
@@ -13,17 +14,31 @@ import { RootStackParamList } from "../../types/navigation";
 import { styles } from "./styles";
 import { quizzesData } from "../../data/quizData";
 import { Word } from "../../types/common";
+
 const HomeScreen: React.FC = () => {
-  const { todayWord, formattedDate, streakCount, dailyWords } =
+  const { todayWord, formattedDate, streakCount, dailyWords, isLoading } =
     useHomeViewModel();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.header}>
-          <Text style={styles.welcomeText}>Xin chào!</Text>
-          <Text style={styles.dateText}>Hoàng Trần</Text>
+          <View style={styles.headerTextBox}>
+            <Text style={styles.welcomeText}>Xin chào!</Text>
+            <Text style={styles.dateText}>Hoàng Trần</Text>
+          </View>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>H</Text>
+          </View>
         </View>
 
         <View style={styles.dailyWordCard}>
@@ -42,7 +57,7 @@ const HomeScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.practiceButton}
             onPress={() =>
-              navigation.navigate("WordDetail", { word: todayWord as Word })
+              navigation.navigate("WordDetail", { wordId: todayWord.id })
             }
           >
             <Text style={styles.practiceButtonText}>Luyện tập</Text>
@@ -82,7 +97,7 @@ const HomeScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.suggestionCard}
               onPress={() =>
-                navigation.navigate("QuizDetail", { quiz: quizzesData[0] })
+                navigation.navigate("QuizDetail", { quizId: "1" })
               }
             >
               <View

@@ -1,27 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Speech from 'expo-speech';
 import * as Clipboard from 'expo-clipboard';
 import * as Sharing from 'expo-sharing';
-import { dictionarySample } from '../screens/DictionaryScreen/data';
+import { DictionaryService } from '../services/DictionaryService';
+import { DictionaryWord } from '../types/common';
 
 const RECENT_KEY = '@dictionary_recent';
 const SAVED_KEY = '@dictionary_saved';
 
 export function useDictionaryViewModel() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResult, setSearchResult] = useState<any>(null);
+  const [searchResults, setSearchResults] = useState<DictionaryWord[]>([]);
+  const [selectedWord, setSelectedWord] = useState<DictionaryWord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [savedWords, setSavedWords] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Load recent and saved words on mount
-  React.useEffect(() => {
+  useEffect(() => {
+    // On mount, show all words by default
+    const all = DictionaryService.getAllWords();
+    setSearchResults(all.words);
     loadRecent();
     loadSaved();
   }, []);
+
+  // Debounced search on input change
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   const loadRecent = async () => {
     try {
@@ -43,14 +56,21 @@ export function useDictionaryViewModel() {
 
   const handleSearch = async (query?: string) => {
     const term = (query ?? searchQuery).trim().toLowerCase();
-    if (!term) return;
     setIsLoading(true);
-    setTimeout(() => {
-      const result = (dictionarySample as Record<string, any>)[term];
-      setSearchResult(result || null);
-      updateRecent(term);
+    try {
+      let result;
+      if (!term) {
+        result = DictionaryService.getAllWords();
+      } else {
+        result = DictionaryService.searchWords(term);
+      }
+      setSearchResults(result.words);
+      if (term) updateRecent(term);
+    } catch {
+      setSearchResults([]);
+    } finally {
       setIsLoading(false);
-    }, 600);
+    }
   };
 
   const updateRecent = async (term: string) => {
@@ -84,45 +104,54 @@ export function useDictionaryViewModel() {
     }
   };
 
-  const handleShare = async (result: any) => {
+  const handleShare = async (word: DictionaryWord) => {
     try {
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
         Alert.alert('Lỗi', 'Chức năng chia sẻ không khả dụng trên thiết bị này');
         return;
       }
-      await Sharing.shareAsync(
-        `Word: ${result.word}\nMeaning: ${result.meaning}\nExample: ${result.definitions[0]?.example}`,
-        {
-          mimeType: 'text/plain',
-          dialogTitle: 'Chia sẻ từ điển',
-        }
-      );
+      const shareText = [
+        `Word: ${word.word}`,
+        `Meaning: ${word.meaning}`,
+        word.definitions[0]?.example ? `Example: ${word.definitions[0].example}` : '',
+        word.definitions[0]?.translation ? `Translation: ${word.definitions[0].translation}` : '',
+      ].filter(Boolean).join('\n');
+      await Sharing.shareAsync(shareText, {
+        mimeType: 'text/plain',
+        dialogTitle: 'Chia sẻ từ điển',
+      });
     } catch {
       Alert.alert('Lỗi', 'Không thể chia sẻ từ này');
     }
   };
 
-  const handleSave = async (word: string) => {
+  const handleSave = async (wordId: string) => {
     try {
       let updated;
-      if (savedWords.includes(word)) {
-        updated = savedWords.filter(w => w !== word);
+      if (savedWords.includes(wordId)) {
+        updated = savedWords.filter(w => w !== wordId);
       } else {
-        updated = [...savedWords, word];
+        updated = [...savedWords, wordId];
       }
       setSavedWords(updated);
       await AsyncStorage.setItem(SAVED_KEY, JSON.stringify(updated));
-      Alert.alert('Thành công', savedWords.includes(word) ? 'Đã xóa khỏi mục đã lưu' : 'Đã lưu từ này');
+      Alert.alert('Thành công', savedWords.includes(wordId) ? 'Đã xóa khỏi mục đã lưu' : 'Đã lưu từ này');
     } catch {
       Alert.alert('Lỗi', 'Không thể lưu từ này');
     }
   };
 
+  const handleSelectWord = (word: DictionaryWord | null) => {
+    setSelectedWord(word);
+  };
+
   return {
     searchQuery,
     setSearchQuery,
-    searchResult,
+    searchResults,
+    selectedWord,
+    handleSelectWord,
     isLoading,
     recentSearches,
     savedWords,

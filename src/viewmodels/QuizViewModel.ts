@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Quiz, QuizModel } from "../models/QuizModel";
-import { QuizService } from "../services/QuizService";
+import * as QuizService from "../services/QuizService";
+import { QuizModel } from "../models/QuizModel";
 
 // Define navigation param list type
 type RootStackParamList = {
@@ -21,8 +21,6 @@ export const useQuizViewModel = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const quizService = new QuizService();
-
   useEffect(() => {
     loadQuizzes();
   }, []);
@@ -30,7 +28,7 @@ export const useQuizViewModel = () => {
   const loadQuizzes = async () => {
     try {
       setIsLoading(true);
-      const quizzes = await quizService.getQuizzes();
+      const quizzes = await QuizService.getQuizzes();
       setQuizModel({ quizzes });
       setError(null);
     } catch (err) {

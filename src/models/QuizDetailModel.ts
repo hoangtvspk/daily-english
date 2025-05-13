@@ -1,20 +1,6 @@
-import { Quiz, Question } from "./QuizModel";
+import { Quiz, QuizDetailState } from "../types/common";
 
-export interface Answer {
-  question: string;
-  selectedOption: number;
-  correctOption: number;
-  isCorrect: boolean;
-}
 
-export interface QuizDetailState {
-  currentQuestion: number;
-  selectedOption: number | null;
-  score: number;
-  quizCompleted: boolean;
-  answers: Answer[];
-  progress: number;
-}
 
 export interface QuizDetailModel {
   quiz: Quiz;

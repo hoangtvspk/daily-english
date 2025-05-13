@@ -27,6 +27,14 @@ const WordDetailScreen: React.FC = () => {
     );
   }
 
+  if (!word) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Word not found</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content}>
@@ -104,11 +112,7 @@ const WordDetailScreen: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.categoryContainer}>
             <Text style={styles.categoryLabel}>Chủ đề:</Text>
-            <Text style={styles.category}>{word.category}</Text>
-          </View>
-          <View style={styles.dateContainer}>
-            <Text style={styles.dateLabel}>Ngày học:</Text>
-            <Text style={styles.date}>{word.date}</Text>
+            <Text style={styles.category}>{word.category?.title}</Text>
           </View>
         </View>
       </ScrollView>

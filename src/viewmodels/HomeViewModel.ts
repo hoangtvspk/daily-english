@@ -1,17 +1,61 @@
-import { dailyWordsData } from "../data/homeData";
-import { Word, WordModel } from "../models/WordModel";
+import { useEffect, useState } from "react";
+import { Word } from "../types/common";
+import * as HomeService from "../services/HomeService";
 
 export function useHomeViewModel() {
-  const wordModel: WordModel = {
-    words: dailyWordsData,
+  const [todayWord, setTodayWord] = useState<Word | null>(null);
+  const [streakCount, setStreakCount] = useState<number>(0);
+  const [dailyWords, setDailyWords] = useState<Word[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    try {
+      const [word, streak, words] = await Promise.all([
+        HomeService.getTodayWord(),
+        HomeService.getStreakCount(),
+        HomeService.getDailyWords(),
+      ]);
+
+      setTodayWord(word || words[0]); // Fallback to first word if no today's word
+      setStreakCount(streak);
+      setDailyWords(words);
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching home data:", error);
+      setError("Failed to load home data");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const todayWord: Word = wordModel.words[0]; // Get first word as daily word
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const today = new Date();
   const formattedDate = `${today.getDate()}/${
     today.getMonth() + 1
   }/${today.getFullYear()}`;
-  const streakCount = 7;
 
-  return { todayWord, formattedDate, streakCount, dailyWords: wordModel.words };
+  // Return a default word structure if data is not loaded yet
+  const defaultWord: Word = {
+    id: "",
+    word: "Loading...",
+    pronunciation: "",
+    meaning: "",
+    example: "",
+    exampleTranslation: "",
+    category: null,
+  };
+
+  return {
+    todayWord: todayWord || defaultWord,
+    formattedDate,
+    streakCount,
+    dailyWords,
+    isLoading,
+    error,
+    refresh: fetchData,
+  };
 }

@@ -34,7 +34,7 @@ const VocabularyScreen: React.FC = () => {
   const renderWordItem = ({ item }: { item: Word }) => (
     <TouchableOpacity
       style={styles.wordItem}
-      onPress={() => handleWordPress({...item, category: vocabularyCategories.find(category => category.id === item.category)?.title || ''})}
+      onPress={() => handleWordPress(item.id)}
     >
       <View style={styles.wordInfo}>
         <Text style={styles.wordText}>{item.word}</Text>

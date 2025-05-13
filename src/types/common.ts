@@ -1,8 +1,3 @@
-import { Quiz, Question } from "../models/QuizModel";
-
-export type { Quiz, Question };
-
-// Profile
 
 export interface Achievement {
   id: string;
@@ -23,6 +18,18 @@ export interface UserProfile {
   achievements: Achievement[];
 }
 
+// Word
+export interface Word {
+  id: string;
+  word: string;
+  pronunciation: string;
+  meaning: string;
+  example: string;
+  exampleTranslation: string;
+  category: VocabularyCategory | null;
+}
+
+// Vocabulary
 export interface VocabularyCategory {
   id: string;
   title: string;
@@ -30,13 +37,79 @@ export interface VocabularyCategory {
   wordCount: number;
 }
 
-export interface Word {
+// Quiz
+export interface Question {
   id: string;
-  date: string;
-  word: string;
-  pronunciation: string;
-  meaning: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description?: string;
+  questions: Question[];
+  category?: string;
+  difficulty?: "easy" | "medium" | "hard";
+  timeLimit?: number; // in seconds
+  completed: boolean;
+  level: string;
+  questionsCount: number;
+  estimatedTime: string;
+}
+
+export interface QuizQuestion {
+  quizId: string;
+  questionId: string;
+  order?: number; // Optional: to maintain question order in quiz
+}
+
+
+// Quiz Detail
+
+export interface Answer {
+  question: string;
+  selectedOption: number;
+  correctOption: number;
+  isCorrect: boolean;
+}
+
+export interface QuizDetailState {
+  currentQuestion: number;
+  selectedOption: number | null;
+  score: number;
+  quizCompleted: boolean;
+  answers: Answer[];
+  progress: number;
+}
+
+// Dictionary
+export interface DictionaryDefinition {
+  id: string;
+  definition: string;
   example: string;
+  translation: string;
   exampleTranslation: string;
-  category: string;
+}
+
+export interface DictionaryWord {
+  id: string;
+  word: string;
+  phonetic: string;
+  partOfSpeech: string;
+  meaning: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  topics: string[];
+  usage: string[];
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+  source: string;
+  audioUrl?: string;
+  imageUrl?: string;
+  notes?: string;
+  definitions: DictionaryDefinition[];
+  synonyms: string[];
+  antonyms: string[];
 }

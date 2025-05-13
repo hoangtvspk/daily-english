@@ -9,7 +9,9 @@ const DictionaryScreen: React.FC = () => {
   const {
     searchQuery,
     setSearchQuery,
-    searchResult,
+    searchResults,
+    selectedWord,
+    handleSelectWord,
     isLoading,
     recentSearches,
     savedWords,
@@ -22,7 +24,87 @@ const DictionaryScreen: React.FC = () => {
     handleSave,
   } = useDictionaryViewModel();
 
-  const isSaved = searchResult && savedWords.includes(searchResult.word.toLowerCase());
+
+  const renderWordCard = (word: any) => {
+    const isExpanded = selectedWord && selectedWord.id === word.id;
+    const isSaved = savedWords.includes(word.word.toLowerCase());
+    return (
+      <TouchableOpacity
+        key={word.id}
+        activeOpacity={0.9}
+        onPress={() => handleSelectWord(isExpanded ? null : word)}
+        style={styles.resultCard}
+      >
+        <View style={styles.resultHeader}>
+          <Text style={styles.resultWord}>{word.word}</Text>
+          <View style={styles.resultActions}>
+            <TouchableOpacity style={[styles.resultActionButton, isSaved && styles.resultActionButtonActive]} onPress={() => handleSave(word.word.toLowerCase())}>
+              <MaterialCommunityIcons name={isSaved ? 'bookmark' : 'bookmark-outline'} size={22} color={isSaved ? colors.primary : colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.resultActionButton} onPress={() => handlePronounce(word.word)} disabled={isPlaying}>
+              {isPlaying ? (
+                <ActivityIndicator size={18} color={colors.primary} />
+              ) : (
+                <MaterialCommunityIcons name="volume-high" size={22} color={colors.primary} />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.resultActionButton} onPress={() => handleCopy(word.word)}>
+              <MaterialCommunityIcons name="content-copy" size={22} color={colors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.resultActionButton} onPress={() => handleShare(word)}>
+              <MaterialCommunityIcons name="share-variant" size={22} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <Text style={styles.resultPhonetic}>{word.phonetic}</Text>
+        <Text style={styles.resultPartOfSpeech}>{word.partOfSpeech}</Text>
+        <Text style={styles.resultMeaning}>{word.meaning}</Text>
+        {isExpanded && (
+          <>
+            <View style={styles.definitionsContainer}>
+              <Text style={styles.definitionsTitle}>Định nghĩa:</Text>
+              {word.definitions.map((def: any, idx: number) => (
+                <View key={idx} style={styles.definitionItem}>
+                  <Text style={styles.definitionText}>{idx + 1}. {def.definition}</Text>
+                  <Text style={styles.definitionTranslation}>{def.translation}</Text>
+                  {def.example && (
+                    <View style={styles.exampleContainer}>
+                      <Text style={styles.exampleText}>"{def.example}"</Text>
+                      <Text style={styles.exampleTranslation}>"{def.exampleTranslation}"</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+            {word.synonyms.length > 0 && (
+              <View style={styles.synonymsContainer}>
+                <Text style={styles.synonymsTitle}>Từ đồng nghĩa:</Text>
+                <View style={styles.synonymsList}>
+                  {word.synonyms.map((syn: string, idx: number) => (
+                    <TouchableOpacity key={idx} style={styles.synonymItem} onPress={() => handleRecentSearch(syn)}>
+                      <Text style={styles.synonymText}>{syn}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+            {word.antonyms.length > 0 && (
+              <View style={styles.antonymsContainer}>
+                <Text style={styles.antonymsTitle}>Từ trái nghĩa:</Text>
+                <View style={styles.antonymsList}>
+                  {word.antonyms.map((ant: string, idx: number) => (
+                    <TouchableOpacity key={idx} style={styles.antonymItem} onPress={() => handleRecentSearch(ant)}>
+                      <Text style={styles.antonymText}>{ant}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+          </>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -44,73 +126,9 @@ const DictionaryScreen: React.FC = () => {
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Đang tìm kiếm...</Text>
         </View>
-      ) : searchResult ? (
+      ) : searchResults.length > 0 ? (
         <ScrollView style={styles.resultScrollView}>
-          <View style={styles.resultCard}>
-            <View style={styles.resultHeader}>
-              <Text style={styles.resultWord}>{searchResult.word}</Text>
-              <View style={styles.resultActions}>
-                <TouchableOpacity style={[styles.resultActionButton, isSaved && styles.resultActionButtonActive]} onPress={() => handleSave(searchResult.word.toLowerCase())}>
-                  <MaterialCommunityIcons name={isSaved ? 'bookmark' : 'bookmark-outline'} size={22} color={isSaved ? colors.primary : colors.textSecondary} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.resultActionButton} onPress={() => handlePronounce(searchResult.word)} disabled={isPlaying}>
-                  {isPlaying ? (
-                    <ActivityIndicator size={18} color={colors.primary} />
-                  ) : (
-                    <MaterialCommunityIcons name="volume-high" size={22} color={colors.primary} />
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.resultActionButton} onPress={() => handleCopy(searchResult.word)}>
-                  <MaterialCommunityIcons name="content-copy" size={22} color={colors.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.resultActionButton} onPress={() => handleShare(searchResult)}>
-                  <MaterialCommunityIcons name="share-variant" size={22} color={colors.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-            <Text style={styles.resultPhonetic}>{searchResult.phonetic}</Text>
-            <Text style={styles.resultPartOfSpeech}>{searchResult.partOfSpeech}</Text>
-            <Text style={styles.resultMeaning}>{searchResult.meaning}</Text>
-            <View style={styles.definitionsContainer}>
-              <Text style={styles.definitionsTitle}>Định nghĩa:</Text>
-              {searchResult.definitions.map((def: any, idx: number) => (
-                <View key={idx} style={styles.definitionItem}>
-                  <Text style={styles.definitionText}>{idx + 1}. {def.definition}</Text>
-                  <Text style={styles.definitionTranslation}>{def.translation}</Text>
-                  {def.example && (
-                    <View style={styles.exampleContainer}>
-                      <Text style={styles.exampleText}>"{def.example}"</Text>
-                      <Text style={styles.exampleTranslation}>"{def.exampleTranslation}"</Text>
-                    </View>
-                  )}
-                </View>
-              ))}
-            </View>
-            {searchResult.synonyms.length > 0 && (
-              <View style={styles.synonymsContainer}>
-                <Text style={styles.synonymsTitle}>Từ đồng nghĩa:</Text>
-                <View style={styles.synonymsList}>
-                  {searchResult.synonyms.map((syn: string, idx: number) => (
-                    <TouchableOpacity key={idx} style={styles.synonymItem} onPress={() => handleRecentSearch(syn)}>
-                      <Text style={styles.synonymText}>{syn}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-            {searchResult.antonyms.length > 0 && (
-              <View style={styles.antonymsContainer}>
-                <Text style={styles.antonymsTitle}>Từ trái nghĩa:</Text>
-                <View style={styles.antonymsList}>
-                  {searchResult.antonyms.map((ant: string, idx: number) => (
-                    <TouchableOpacity key={idx} style={styles.antonymItem} onPress={() => handleRecentSearch(ant)}>
-                      <Text style={styles.antonymText}>{ant}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
+          {searchResults.map(renderWordCard)}
         </ScrollView>
       ) : searchQuery ? (
         <View style={styles.noResultContainer}>

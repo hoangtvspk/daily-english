@@ -1,4 +1,4 @@
-import { QuizQuestion } from "../models/QuizModel";
+
 
 // Quiz-Question relationship data type definition
 export interface QuizQuestionData {

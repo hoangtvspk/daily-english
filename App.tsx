@@ -33,7 +33,7 @@ function HomeTabs() {
       })}
     >
       <Tab.Screen name="Trang chủ" component={HomeScreen} options={{ headerShown: false }} />
-      <Tab.Screen name="Từ vựng" component={VocabularyScreen} />
+      <Tab.Screen name="Từ vựng" component={VocabularyScreen}  />
       <Tab.Screen name="Bài tập" component={QuizScreen} />
       <Tab.Screen name="Hồ sơ" component={ProfileScreen} />
     </Tab.Navigator>

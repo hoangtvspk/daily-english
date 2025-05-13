@@ -7,33 +7,47 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import * as Sharing from 'expo-sharing';
 import { Alert } from 'react-native';
+import * as VocabularyService from '../services/VocabularyService';
 
 const FAVORITES_KEY = '@favorites';
 
 export const useWordDetailViewModel = () => {
   const route = useRoute<WordDetailScreenRouteProp>();
-  const { word } = route.params;
+  const { wordId } = route.params;
+  const [word, setWord] = useState<Word | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    checkFavoriteStatus();
+    loadWordDetail();
   }, []);
 
-  const checkFavoriteStatus = async () => {
+  const loadWordDetail = async () => {
     try {
-      const favorites = await AsyncStorage.getItem(FAVORITES_KEY);
-      const favoritesArray = favorites ? JSON.parse(favorites) : [];
-      setIsFavorite(favoritesArray.some((w: Word) => w.id === word.id));
+      setIsLoading(true);
+      const wordDetail = await VocabularyService.getWordDetail(wordId);
+      setWord(wordDetail);
+      await checkFavoriteStatus(wordDetail);
     } catch (error) {
-      Alert.alert('Lỗi', 'Không thể kiểm tra trạng thái yêu thích');
+      Alert.alert('Lỗi', 'Không thể tải thông tin từ');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const checkFavoriteStatus = async (wordDetail: Word) => {
+    try {
+      const favorites = await AsyncStorage.getItem(FAVORITES_KEY);
+      const favoritesArray = favorites ? JSON.parse(favorites) : [];
+      setIsFavorite(favoritesArray.some((w: Word) => w.id === wordDetail.id));
+    } catch (error) {
+      Alert.alert('Lỗi', 'Không thể kiểm tra trạng thái yêu thích');
+    }
+  };
+
   const handlePlayPronunciation = async () => {
+    if (!word) return;
     try {
       setIsPlaying(true);
       await Speech.speak(word.word, {
@@ -49,6 +63,7 @@ export const useWordDetailViewModel = () => {
   };
 
   const handleAddToFavorites = async () => {
+    if (!word) return;
     try {
       const favorites = await AsyncStorage.getItem(FAVORITES_KEY);
       const favoritesArray = favorites ? JSON.parse(favorites) : [];
@@ -67,6 +82,7 @@ export const useWordDetailViewModel = () => {
   };
 
   const handleCopyToClipboard = async () => {
+    if (!word) return;
     try {
       await Clipboard.setStringAsync(word.word);
       Alert.alert('Thành công', 'Đã sao chép từ vào clipboard');
@@ -76,6 +92,7 @@ export const useWordDetailViewModel = () => {
   };
 
   const handleShare = async () => {
+    if (!word) return;
     try {
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {

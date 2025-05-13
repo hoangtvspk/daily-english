@@ -1,29 +1,70 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { useQuizDetailViewModel } from '../../viewmodels/QuizDetailViewModel';
-import { styles } from './styles';
-import { Quiz } from '../../types/common';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { QuizDetailScreenRouteProp } from '../../types/navigation';
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
+import { useQuizDetailViewModel } from "../../viewmodels/QuizDetailViewModel";
+import { styles } from "./styles";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { QuizDetailScreenRouteProp } from "../../types/navigation";
 
 const QuizDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<QuizDetailScreenRouteProp>();
-  const { quiz } = route.params;
+  const { quizId } = route.params;
 
+  const quizDetail = useQuizDetailViewModel(quizId);
+
+  if (quizDetail.isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>Đang tải...</Text>
+      </View>
+    );
+  }
+  if (quizDetail.error) {
+    return (
+      <View style={styles.container}>
+        <Text>{quizDetail.error}</Text>
+      </View>
+    );
+  }
+  if (!quizDetail.currentQuestionData || !quizDetail.quiz) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.noQuestionsContainer}>
+          <Text style={styles.noQuestionsText}>
+            Bài tập này đang được cập nhật. Vui lòng quay lại sau.
+          </Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Only destructure after all checks
   const {
-    currentQuestion,
+    quiz,
+    currentQuestion = 0,
     selectedOption,
-    score,
+    score = 0,
     quizCompleted,
-    answers,
+    answers = [],
     handleOptionSelect,
     handleNextQuestion,
     resetQuiz,
-    progress,
+    progress = 0,
     currentQuestionData,
-    totalQuestions
-  } = useQuizDetailViewModel(quiz);
+    totalQuestions = 0,
+  } = quizDetail;
 
   if (!quiz.questions || quiz.questions.length === 0) {
     return (
@@ -32,7 +73,7 @@ const QuizDetailScreen: React.FC = () => {
           <Text style={styles.noQuestionsText}>
             Bài tập này đang được cập nhật. Vui lòng quay lại sau.
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
@@ -52,7 +93,7 @@ const QuizDetailScreen: React.FC = () => {
             <Text style={styles.quizCompletedScore}>
               Điểm số: {score}/{totalQuestions}
             </Text>
-            
+
             <View style={styles.resultSummary}>
               <View style={styles.resultItem}>
                 <View style={[styles.resultDot, styles.correctDot]} />
@@ -60,42 +101,50 @@ const QuizDetailScreen: React.FC = () => {
               </View>
               <View style={styles.resultItem}>
                 <View style={[styles.resultDot, styles.incorrectDot]} />
-                <Text style={styles.resultText}>Sai: {totalQuestions - score}</Text>
+                <Text style={styles.resultText}>
+                  Sai: {totalQuestions - score}
+                </Text>
               </View>
             </View>
-            
+
             <Text style={styles.reviewTitle}>Xem lại câu trả lời:</Text>
-            
+
             {answers.map((answer, index) => (
               <View key={index} style={styles.reviewItem}>
                 <Text style={styles.reviewQuestion}>
                   {index + 1}. {answer.question}
                 </Text>
-                <View style={[
-                  styles.reviewAnswer,
-                  answer.isCorrect ? styles.correctAnswer : styles.incorrectAnswer
-                ]}>
+                <View
+                  style={[
+                    styles.reviewAnswer,
+                    answer.isCorrect
+                      ? styles.correctAnswer
+                      : styles.incorrectAnswer,
+                  ]}
+                >
                   <Text style={styles.reviewAnswerText}>
-                    Bạn chọn: {quiz.questions[index].options[answer.selectedOption]}
+                    Bạn chọn:{" "}
+                    {quiz.questions[index].options[answer.selectedOption]}
                   </Text>
                   {!answer.isCorrect && (
                     <Text style={styles.correctAnswerText}>
-                      Đáp án đúng: {quiz.questions[index].options[answer.correctOption]}
+                      Đáp án đúng:{" "}
+                      {quiz.questions[index].options[answer.correctOption]}
                     </Text>
                   )}
                 </View>
               </View>
             ))}
-            
+
             <View style={styles.actionButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => navigation.goBack()}
               >
                 <Text style={styles.actionButtonText}>Quay lại</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.actionButton, styles.retryButton]}
                 onPress={resetQuiz}
               >
@@ -117,27 +166,22 @@ const QuizDetailScreen: React.FC = () => {
             Câu hỏi {currentQuestion + 1}/{totalQuestions}
           </Text>
         </View>
-        
+
         <View style={styles.progressBar}>
-          <View 
-            style={[
-              styles.progressFill, 
-              { width: `${progress}%` }
-            ]} 
-          />
+          <View style={[styles.progressFill, { width: `${progress ?? 0}%` }]} />
         </View>
-        
+
         <View style={styles.questionContainer}>
           <Text style={styles.questionText}>
             {currentQuestion + 1}. {currentQuestionData.question}
           </Text>
-          
+
           {currentQuestionData.options.map((option, index) => (
             <TouchableOpacity
               key={index}
               style={[
                 styles.optionButton,
-                selectedOption === index && styles.selectedOption
+                selectedOption === index && styles.selectedOption,
               ]}
               onPress={() => handleOptionSelect(index)}
             >
@@ -147,18 +191,20 @@ const QuizDetailScreen: React.FC = () => {
             </TouchableOpacity>
           ))}
         </View>
-        
+
         <View style={styles.navigationButtons}>
           <TouchableOpacity
             style={[
               styles.nextButton,
-              selectedOption === null && styles.disabledButton
+              selectedOption === null && styles.disabledButton,
             ]}
             onPress={handleNextQuestion}
             disabled={selectedOption === null}
           >
             <Text style={styles.nextButtonText}>
-              {currentQuestion === totalQuestions - 1 ? 'Hoàn thành' : 'Câu tiếp theo'}
+              {currentQuestion === totalQuestions - 1
+                ? "Hoàn thành"
+                : "Câu tiếp theo"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -167,4 +213,4 @@ const QuizDetailScreen: React.FC = () => {
   );
 };
 
-export default QuizDetailScreen; 
+export default QuizDetailScreen;

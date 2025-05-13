@@ -1,7 +1,6 @@
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
-import { DailyWord } from '../models/DailyWord';
-import { Quiz, Word } from './common';
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { Quiz, Word } from "./common";
 
 export type RootStackParamList = {
   Home: undefined;
@@ -9,14 +8,20 @@ export type RootStackParamList = {
   WordDetail: { word: Word };
   Dictionary: undefined;
   Quiz: undefined;
-  QuizDetail: { quiz: Quiz };
+  QuizDetail: { quizId: string };
   Phrases: undefined;
   Profile: undefined;
   HomeTabs: undefined;
   // Thêm các màn hình khác nếu có
-}; 
+};
 
 export type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export type QuizDetailScreenRouteProp = RouteProp<RootStackParamList, 'QuizDetail'>;
-export type WordDetailScreenRouteProp = RouteProp<RootStackParamList, 'WordDetail'>; 
+export type QuizDetailScreenRouteProp = RouteProp<
+  RootStackParamList,
+  "QuizDetail"
+>;
+export type WordDetailScreenRouteProp = RouteProp<
+  RootStackParamList,
+  "WordDetail"
+>;

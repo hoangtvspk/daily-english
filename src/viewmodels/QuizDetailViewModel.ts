@@ -1,70 +1,161 @@
-import { useState } from 'react';
-import { Quiz, Question } from '../types/common';
+import { useState, useEffect } from "react";
+import { Quiz } from "../models/QuizModel";
+import {
+  QuizDetailModel,
+  QuizDetailState,
+  Answer,
+} from "../models/QuizDetailModel";
+import { QuizService } from "../services/QuizService";
 
-interface QuizAnswer {
-  question: string;
-  selectedOption: number;
-  correctOption: number;
-  isCorrect: boolean;
-}
+export const useQuizDetailViewModel = (quizId: string) => {
+  const [quizDetailModel, setQuizDetailModel] =
+    useState<QuizDetailModel | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export const useQuizDetailViewModel = (quiz: Quiz) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [quizCompleted, setQuizCompleted] = useState(false);
-  const [answers, setAnswers] = useState<QuizAnswer[]>([]);
+  const quizService = new QuizService();
+
+  useEffect(() => {
+    loadQuizDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizId]);
+
+  const loadQuizDetail = async () => {
+    try {
+      setIsLoading(true);
+      const quiz = await quizService.getQuizById(quizId);
+
+      if (!quiz) {
+        setError("Quiz not found");
+        setQuizDetailModel(null);
+        return;
+      }
+
+      const initialState: QuizDetailState = {
+        currentQuestion: 0,
+        selectedOption: null,
+        score: 0,
+        quizCompleted: false,
+        answers: [],
+        progress: 0,
+      };
+
+      setQuizDetailModel({
+        quiz,
+        state: initialState,
+      });
+      setError(null);
+    } catch (err) {
+      setError("Failed to load quiz detail");
+      setQuizDetailModel(null);
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleOptionSelect = (optionIndex: number) => {
-    setSelectedOption(optionIndex);
+    if (!quizDetailModel) return;
+
+    setQuizDetailModel((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        state: {
+          ...prev.state,
+          selectedOption: optionIndex,
+        },
+      };
+    });
   };
 
   const handleNextQuestion = () => {
-    if (selectedOption === null) return;
+    if (!quizDetailModel || quizDetailModel.state.selectedOption === null)
+      return;
 
-    // Save answer
-    const newAnswers = [...answers];
-    newAnswers[currentQuestion] = {
-      question: quiz.questions[currentQuestion].question,
+    const currentQuestion = quizDetailModel.state.currentQuestion;
+    const selectedOption = quizDetailModel.state.selectedOption;
+    const currentQuestionData = quizDetailModel.quiz.questions[currentQuestion];
+
+    // Create new answer
+    const newAnswer: Answer = {
+      question: currentQuestionData.question,
       selectedOption: selectedOption,
-      correctOption: quiz.questions[currentQuestion].correctAnswer,
-      isCorrect: selectedOption === quiz.questions[currentQuestion].correctAnswer
+      correctOption: currentQuestionData.correctAnswer,
+      isCorrect: selectedOption === currentQuestionData.correctAnswer,
     };
-    setAnswers(newAnswers);
 
-    // Update score
-    if (selectedOption === quiz.questions[currentQuestion].correctAnswer) {
-      setScore(score + 1);
-    }
+    // Update state
+    setQuizDetailModel((prev) => {
+      if (!prev) return prev;
+      const newAnswers = [...prev.state.answers];
+      newAnswers[currentQuestion] = newAnswer;
 
-    // Move to next question or complete quiz
-    if (currentQuestion < quiz.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedOption(null);
-    } else {
-      setQuizCompleted(true);
-    }
+      const newScore = newAnswer.isCorrect
+        ? prev.state.score + 1
+        : prev.state.score;
+      const isLastQuestion = currentQuestion === prev.quiz.questions.length - 1;
+
+      return {
+        ...prev,
+        state: {
+          ...prev.state,
+          answers: newAnswers,
+          score: newScore,
+          currentQuestion: isLastQuestion
+            ? currentQuestion
+            : currentQuestion + 1,
+          selectedOption: isLastQuestion ? selectedOption : null,
+          quizCompleted: isLastQuestion,
+          progress: ((currentQuestion + 1) / prev.quiz.questions.length) * 100,
+        },
+      };
+    });
   };
 
   const resetQuiz = () => {
-    setCurrentQuestion(0);
-    setSelectedOption(null);
-    setScore(0);
-    setQuizCompleted(false);
-    setAnswers([]);
+    if (!quizDetailModel) return;
+
+    const initialState: QuizDetailState = {
+      currentQuestion: 0,
+      selectedOption: null,
+      score: 0,
+      quizCompleted: false,
+      answers: [],
+      progress: 0,
+    };
+
+    setQuizDetailModel((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        state: initialState,
+      };
+    });
   };
 
+  // Always return a consistent object
+  const quiz = quizDetailModel ? quizDetailModel.quiz : undefined;
+  const state = quizDetailModel ? quizDetailModel.state : undefined;
+  const currentQuestionData =
+    quiz && state ? quiz.questions[state.currentQuestion] : undefined;
+  const totalQuestions = quiz ? quiz.questions.length : 0;
+
   return {
-    currentQuestion,
-    selectedOption,
-    score,
-    quizCompleted,
-    answers,
+    quiz,
+    currentQuestion: state?.currentQuestion,
+    selectedOption: state?.selectedOption,
+    score: state?.score,
+    quizCompleted: state?.quizCompleted,
+    answers: state?.answers,
     handleOptionSelect,
     handleNextQuestion,
     resetQuiz,
-    progress: ((currentQuestion + 1) / quiz.questions.length) * 100,
-    currentQuestionData: quiz.questions[currentQuestion],
-    totalQuestions: quiz.questions.length
+    progress: state?.progress,
+    currentQuestionData,
+    totalQuestions,
+    isLoading,
+    error,
+    refresh: loadQuizDetail,
   };
-}; 
+};

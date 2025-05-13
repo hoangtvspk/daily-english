@@ -1,12 +1,17 @@
-import { dailyWordsData } from "../screens/HomeScreen/data";
-import { Word } from "../types/common";
-
+import { dailyWordsData } from "../data/homeData";
+import { Word, WordModel } from "../models/WordModel";
 
 export function useHomeViewModel() {
-  const dailyWords = dailyWordsData;
-  const todayWord: Word = dailyWords[0];
+  const wordModel: WordModel = {
+    words: dailyWordsData,
+  };
+
+  const todayWord: Word = wordModel.words[0]; // Get first word as daily word
   const today = new Date();
-  const formattedDate = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+  const formattedDate = `${today.getDate()}/${
+    today.getMonth() + 1
+  }/${today.getFullYear()}`;
   const streakCount = 7;
-  return { todayWord, formattedDate, streakCount, dailyWords };
-} 
+
+  return { todayWord, formattedDate, streakCount, dailyWords: wordModel.words };
+}

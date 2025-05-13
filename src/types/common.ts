@@ -1,27 +1,6 @@
-// Quiz
+import { Quiz, Question } from "../models/QuizModel";
 
-export interface Question {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-}
-
-export interface Quiz {
-  id: string;
-  title: string;
-  description?: string;
-  questions: Question[];
-  category?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
-  timeLimit?: number; // in seconds
-  completed: boolean;
-  level: string;
-  questionsCount: number;
-  estimatedTime: string;
-}
-
-
+export type { Quiz, Question };
 
 // Profile
 
@@ -60,4 +39,4 @@ export interface Word {
   example: string;
   exampleTranslation: string;
   category: string;
-} 
+}

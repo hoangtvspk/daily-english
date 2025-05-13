@@ -1,4 +1,5 @@
-export interface DailyWord {
+// This is just a type definition, no logic here
+export interface Word {
   id: string;
   date: string;
   word: string;
@@ -7,4 +8,8 @@ export interface DailyWord {
   example: string;
   exampleTranslation: string;
   category: string;
-} 
+}
+
+export interface WordModel {
+  words: Word[];
+}

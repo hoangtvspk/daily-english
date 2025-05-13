@@ -1,14 +1,14 @@
-import React from 'react';
+import React from "react";
 import {
   FlatList,
   SafeAreaView,
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useQuizViewModel } from '../../viewmodels/QuizViewModel';
-import { styles } from './styles';
-import { Quiz } from '../../types/common';
+} from "react-native";
+import { useQuizViewModel } from "../../viewmodels/QuizViewModel";
+import { styles } from "./styles";
+import { Quiz } from "../../types/common";
 
 const QuizScreen: React.FC = () => {
   const { quizzes, navigateToQuizDetail } = useQuizViewModel();
@@ -16,7 +16,7 @@ const QuizScreen: React.FC = () => {
   const renderQuizItem = ({ item }: { item: Quiz }) => (
     <TouchableOpacity
       style={[styles.quizItem, item.completed && styles.completedQuizItem]}
-      onPress={() => navigateToQuizDetail(item)}
+      onPress={() => navigateToQuizDetail(item.id)}
     >
       <View style={styles.quizHeader}>
         <View style={styles.quizInfo}>
@@ -41,7 +41,7 @@ const QuizScreen: React.FC = () => {
       <View style={styles.quizFooter}>
         <TouchableOpacity
           style={[styles.startButton, item.completed && styles.restartButton]}
-          onPress={() => navigateToQuizDetail(item)}
+          onPress={() => navigateToQuizDetail(item.id)}
         >
           <Text style={styles.startButtonText}>
             {item.completed ? "Làm lại" : "Bắt đầu"}
@@ -70,4 +70,4 @@ const QuizScreen: React.FC = () => {
   );
 };
 
-export default QuizScreen; 
+export default QuizScreen;

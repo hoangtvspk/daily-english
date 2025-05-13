@@ -1,4 +1,4 @@
-import { UserProfile } from '../../types/common';
+import { UserProfile } from "../types/common";
 
 export const profileData: UserProfile = {
   name: "Học Viên",
@@ -31,4 +31,4 @@ export const profileData: UserProfile = {
       unlocked: false,
     },
   ],
-}; 
+};

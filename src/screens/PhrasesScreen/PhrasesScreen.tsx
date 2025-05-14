@@ -16,7 +16,6 @@ const PhrasesScreen: React.FC = () => {
     favoriteIds,
     isPlayingId,
     isLoading,
-    handleFavorite,
     handlePlay,
     handleCopy,
     handleShare,
@@ -32,7 +31,7 @@ const PhrasesScreen: React.FC = () => {
           <View style={styles.actionButtons}>
             <TouchableOpacity
               style={[styles.actionButton, styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
-              onPress={() => handleFavorite(item.id)}
+              onPress={() => {}}
             >
               <MaterialCommunityIcons
                 name={isFavorite ? 'heart' : 'heart-outline'}
@@ -71,7 +70,7 @@ const PhrasesScreen: React.FC = () => {
           <Text style={styles.phraseItemExampleTranslation}>{item.exampleTranslation}</Text>
         </View>
         <View style={styles.phraseItemFooter}>
-          <Text style={styles.phraseItemCategory}>{item.category}</Text>
+          <Text style={styles.phraseItemCategory}>{item.category?.name}</Text>
         </View>
       </View>
     );
@@ -104,17 +103,17 @@ const PhrasesScreen: React.FC = () => {
               key={idx}
               style={[
                 styles.categoryButton,
-                selectedCategory === category && styles.selectedCategoryButton,
+                selectedCategory === category.id && styles.selectedCategoryButton,
               ]}
-              onPress={() => setSelectedCategory(category)}
+              onPress={() => setSelectedCategory(category.id)}
             >
               <Text
                 style={[
                   styles.categoryButtonText,
-                  selectedCategory === category && styles.selectedCategoryButtonText,
+                  selectedCategory === category.id && styles.selectedCategoryButtonText,
                 ]}
               >
-                {category}
+                {category.name}
               </Text>
             </TouchableOpacity>
           ))}
@@ -123,7 +122,7 @@ const PhrasesScreen: React.FC = () => {
       <FlatList
         data={phrases}
         renderItem={renderPhraseItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.phrase}
         contentContainerStyle={styles.phrasesList}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>

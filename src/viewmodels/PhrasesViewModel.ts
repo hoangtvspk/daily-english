@@ -4,72 +4,90 @@ import * as Sharing from "expo-sharing";
 import * as Speech from "expo-speech";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
-import { Phrase } from "../models/PhraseModel";
-import { phrasesSample } from "../screens/PhrasesScreen/data";
+import phraseService from "../services/PhraseService";
+import { Phrase, PhraseCategory } from "../types/common";
 
 const FAVORITE_PHRASES_KEY = "@favorite_phrases";
 
 export function usePhrasesViewModel() {
-  const [phrases, setPhrases] = useState<Phrase[]>(phrasesSample);
+  const [phrases, setPhrases] = useState<Phrase[] >([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [isPlayingId, setIsPlayingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<PhraseCategory[]>([]);
 
   useEffect(() => {
-    loadFavorites();
+    const fetchPhrases = async () => {
+      setIsLoading(true);
+      try {
+       const phrasesData = await phraseService.getPhrases({
+        searchQuery: searchQuery,
+        categoryId: selectedCategory,
+        });
+        if(phrasesData){
+          setPhrases(phrasesData);
+        } else {
+          setPhrases([]);
+        }
+       
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPhrases();
+  }, [selectedCategory, searchQuery]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+       const categoriesData = await phraseService.getPhraseCategories();
+        if(categoriesData){
+          setCategories(categoriesData);
+        }
+    };
+    fetchCategories();
   }, []);
 
-  useEffect(() => {
-    filterPhrases();
-  }, [searchQuery, selectedCategory]);
+  // useEffect(() => {
+  //   loadFavorites();
+  // }, []);
 
-  const loadFavorites = async () => {
-    try {
-      const favs = await AsyncStorage.getItem(FAVORITE_PHRASES_KEY);
-      setFavoriteIds(favs ? JSON.parse(favs) : []);
-      setCategories([
-        "Tất cả",
-        ...Array.from(new Set(phrasesSample.map((p) => p.category))),
-      ]);
-    } catch (e) {
-      setFavoriteIds([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const filterPhrases = () => {
-    let filtered = phrasesSample;
-    if (selectedCategory !== "Tất cả") {
-      filtered = filtered.filter((item) => item.category === selectedCategory);
-    }
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (item) =>
-          item.phrase.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.meaning.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    setPhrases(filtered);
-  };
+  // const loadFavorites = async () => {
+  //   try {
+  //     const favs = await AsyncStorage.getItem(FAVORITE_PHRASES_KEY);
+  //     setFavoriteIds(favs ? JSON.parse(favs) : []);
+  //     setCategories([
+  //       "Tất cả",
+  //       ...Array.from(new Set(phrasesData.map((p) => p.category))),
+  //     ]);
+  //   } catch (e) {
+  //     setFavoriteIds([]);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleFavorite = async (id: string) => {
-    try {
-      let newFavs;
-      if (favoriteIds.includes(id)) {
-        newFavs = favoriteIds.filter((favId) => favId !== id);
-      } else {
-        newFavs = [...favoriteIds, id];
-      }
-      setFavoriteIds(newFavs);
-      await AsyncStorage.setItem(FAVORITE_PHRASES_KEY, JSON.stringify(newFavs));
-    } catch (e) {
-      Alert.alert("Lỗi", "Không thể cập nhật yêu thích");
-    }
-  };
+
+
+
+  // const handleFavorite = async (id: string) => {
+  //   try {
+  //     let newFavs;
+  //     if (favoriteIds.includes(id)) {
+  //       newFavs = favoriteIds.filter((favId) => favId !== id);
+  //     } else {
+  //       newFavs = [...favoriteIds, id];
+  //     }
+  //     setFavoriteIds(newFavs);
+  //     await AsyncStorage.setItem(FAVORITE_PHRASES_KEY, JSON.stringify(newFavs));
+  //   } catch (e) {
+  //     Alert.alert("Lỗi", "Không thể cập nhật yêu thích");
+  //   }
+  // };
 
   const handlePlay = async (phrase: string, id: string) => {
     try {
@@ -127,7 +145,6 @@ export function usePhrasesViewModel() {
     favoriteIds,
     isPlayingId,
     isLoading,
-    handleFavorite,
     handlePlay,
     handleCopy,
     handleShare,

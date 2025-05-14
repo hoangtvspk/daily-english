@@ -113,3 +113,18 @@ export interface DictionaryWord {
   synonyms: string[];
   antonyms: string[];
 }
+
+// Phrase
+export interface Phrase {
+  id: string;
+  phrase: string;
+  meaning: string;
+  example: string;
+  exampleTranslation: string;
+  category: PhraseCategory | null;
+}
+
+export interface PhraseCategory {
+  id: string;
+  name: string;
+}

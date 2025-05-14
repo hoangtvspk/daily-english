@@ -1,11 +1,7 @@
-export interface Phrase {
-  id: string;
-  phrase: string;
-  meaning: string;
-  example: string;
-  exampleTranslation: string;
-  category: string;
-}
+import { Phrase, PhraseCategory } from "../types/common";
 
 // This is just a type definition, no logic here
-export type PhraseModel = Phrase[];
+export type PhraseModel = {
+  phrases: Phrase[];
+  categories: PhraseCategory[];
+};

@@ -45,10 +45,10 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="HomeTabs" component={HomeTabs} options={{ headerShown: false }} />
-        <Stack.Screen name="WordDetail" component={WordDetailScreen} options={{ title: 'Chi tiết từ vựng' }} />
-        <Stack.Screen name="Phrases" component={PhrasesScreen} options={{ title: 'Cụm từ thông dụng' }} />
-        <Stack.Screen name="QuizDetail" component={QuizDetailScreen} options={{ title: 'Bài tập' }} />
-        <Stack.Screen name="Dictionary" component={DictionaryScreen} options={{ title: 'Từ điển' }} />
+        <Stack.Screen name="WordDetail" component={WordDetailScreen} options={{ title: 'Chi tiết từ vựng', headerBackTitle: 'Trang chủ' }} />
+        <Stack.Screen name="Phrases" component={PhrasesScreen} options={{ title: 'Cụm từ thông dụng', headerBackTitle: 'Trang chủ' }} />
+        <Stack.Screen name="QuizDetail" component={QuizDetailScreen} options={{ title: 'Bài tập', headerBackTitle: 'Trang chủ' }} />
+        <Stack.Screen name="Dictionary" component={DictionaryScreen} options={{ title: 'Từ điển', headerBackTitle: 'Trang chủ' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
